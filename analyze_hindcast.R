@@ -13,6 +13,7 @@ library(jcolors)
 library(gapminder)
 library(ggplot2)
 library(wesanderson)
+library(ggcorrplot)
 library(magick)
 require(ggplot2)
 library(plotly)
@@ -1065,10 +1066,10 @@ dev.off()
 
 # Plot 11: Environmental variables -------------------------------------------------
 
-plot_data = bind_rows(plot_data_8a)
-plot_data$state = str_to_title(plot_data$state)
+plot_dataT = bind_rows(plot_data_8a)
+plot_dataT$state = str_to_title(plot_dataT$state)
 
-plot_temp_1 = ggplot(plot_data, aes(x = factor(year), color = factor(state), 
+plot_temp_1 = ggplot(plot_dataT, aes(x = factor(year), color = factor(state), 
                                fill = factor(state))) + 
   geom_boxplot(aes(y = value), alpha=0.3, outlier.size = 0.6) +
   theme_bw() +
@@ -1081,10 +1082,10 @@ plot_temp_1 = ggplot(plot_data, aes(x = factor(year), color = factor(state),
          color=guide_legend(title=NULL)) 
 
 # By release date:
-plot_data$relday = factor(plot_data$relday, levels = paste0(relday_vec, '-3'))
-plot_data$relday = factor(plot_data$relday, labels = relday_vec)
+plot_dataT$relday = factor(plot_dataT$relday, levels = paste0(relday_vec, '-3'))
+plot_dataT$relday = factor(plot_dataT$relday, labels = relday_vec)
 
-plot_env_1b = ggplot(plot_data, aes(x = relday, color = factor(state), 
+plot_env_1b = ggplot(plot_dataT, aes(x = relday, color = factor(state), 
                                    fill = factor(state))) + 
   geom_boxplot(aes(y = value), alpha=0.3,  outlier.size = 0.6) +
   theme_bw() +
@@ -1156,6 +1157,36 @@ plot_env_2b = ggplot(plot_data, aes(x = relday, color = factor(state),
 png(filename = 'figures/hind_preydensity_relday.png', width = 190, height = 120, 
     units = 'mm', res = 500)
 print(plot_env_2b)
+dev.off()
+
+
+# Relationship between env variables with recruitment estimates -----------
+plot_dataT = bind_rows(plot_data_8a)
+mean_dfT = plot_dataT %>% group_by(year) %>% summarise(meanValue = mean(value))
+plot_data = bind_rows(plot_data_9a)
+mean_dfP = plot_data %>% group_by(year, variable) %>% summarise(meanValue = mean(value))
+mean_dfP = tidyr::spread(mean_dfP, variable, meanValue)
+
+rec_estimates = read.csv('Compare_Recs_Surv.csv')
+rec_estimates = rec_estimates[rec_estimates$year <= 2020 & rec_estimates$year >= 2000 & rec_estimates$scenario == 'sage0_mod', ]
+rec_estimates$temperature = mean_dfT$meanValue
+rec_estimates$Cop = mean_dfP$copepods
+rec_estimates$NCaS = mean_dfP$neocalanusShelf
+rec_estimates$NCaO = mean_dfP$neocalanus
+rec_estimates$Eup = mean_dfP$euphausiids
+
+#Standardize:
+rec_estimates = rec_estimates %>% dplyr::mutate(dplyr::across(p_index:Eup, BBmisc::normalize))
+cor_df = rec_estimates %>% dplyr::select(p_index:Eup)
+colnames(cor_df) = c('Recruit', 'Temp', 'Cop', 'NCaS', 'NCaO', 'Eup')
+
+# Make correlation plot:
+corr <- round(cor(cor_df), 1) # Pearson correlation coefficient
+p.mat <- ggcorrplot::cor_pmat(cor_df) # pvalues
+# Make plot: only plot significant squares:
+png(filename = 'figures/hind_corr_recenv.png', width = 190, height = 160, units = 'mm', res = 500)
+print(ggcorrplot(corr, p.mat = p.mat, hc.order = TRUE,
+           type = "lower", insig = "blank", lab = TRUE))
 dev.off()
 
 
