@@ -991,19 +991,19 @@ plot_trajectory = function(plot_data) {
                                  colour = "gray80", size = 0.25, alpha = 0.5) +
                     geom_path(data = plot_data, aes(x = horizPos1, y = horizPos2, group = factor(id)), 
                               color = 'black', alpha = 0.3) +
-                    coord_cartesian(xlim = c(170, 205), ylim = c(51, 65)) +
+                    coord_cartesian(xlim = c(170, 205), ylim = c(51, 65)) +  
                     scale_x_continuous(breaks = c(175, 185, 195, 205), 
-                                       labels = c('175\u00B0E', '175\u00B0W', '165\u00B0W', '155\u00B0W')) +
+                                       labels = c('', '175\u00B0W', '', '155\u00B0W')) +
                     scale_y_continuous(breaks = c(52, 56, 60, 64), 
                                        labels = c('52\u00B0N', '56\u00B0N', '60\u00B0N', '64\u00B0N')) +
                     xlab(NULL) +
                     ylab(NULL) +
                     theme_bw() +
-                    annotate('text', x = 205, y =63, label= unique(plot_data$year)[1], hjust=1, size = 4) +
+                    annotate('text', x = 205, y =63, label= unique(plot_data$year)[1], hjust=1, size = 3) +
                     theme(panel.grid.major = element_blank(),
                           panel.grid.minor = element_blank(),
-                          axis.line = element_line(size = 0.5, linetype = "solid",
-                                                   colour = "black")) 
+                          axis.line = element_line(size = 0.5, linetype = "solid", colour = "black"),
+                          axis.text = element_text(size = 6)) 
     
     return(p2)
 

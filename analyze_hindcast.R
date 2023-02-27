@@ -1067,7 +1067,7 @@ dev.off()
 # Plot 11: Environmental variables -------------------------------------------------
 
 plot_dataT = bind_rows(plot_data_8a)
-plot_dataT$state = str_to_title(plot_dataT$state)
+plot_dataT$state = ifelse(test = plot_dataT$state == 'alive', yes = 'Surviving', no = 'Dead')
 
 plot_temp_1 = ggplot(plot_dataT, aes(x = factor(year), color = factor(state), 
                                fill = factor(state))) + 
@@ -1110,7 +1110,7 @@ plot_data$variable = factor(plot_data$variable, levels = c("euphausiids",
 plot_data$variable2 = factor(plot_data$variable, labels = c("Eup~(mg~C/m^3)",
                                                             "NCaS~(mg~C/m^3)", 
                                                             "NCaO~(mg~C/m^3)", "Cop~(mg~C/m^3)"))
-plot_data$state = str_to_title(plot_data$state)
+plot_data$state = ifelse(test = plot_data$state == 'alive', yes = 'Surviving', no = 'Dead')
 
 plot_env_2 = ggplot(plot_data, aes(x = factor(year), color = factor(state), 
                                    fill = factor(state))) + 
@@ -1352,7 +1352,7 @@ country_shapes <-  geom_polygon(data = map_world_df,
 # Plot trajectories:
 # We need the raw DisMELS outputs to run this plot:
 
-# List to save plots: (TODO: CHECK)
+# List to save plots:
 plotList = list()
 indList = 1
 cores = list.files(path = main_folder)
@@ -1360,36 +1360,24 @@ cores = list.files(path = main_folder)
 for(i in seq_along(cores)) {
 
   core_name = cores[i]
-  files_core = list.files(path = file.path(main_folder, core_name))
-  fcore = grep(pattern = 'Results_files', x = list.files(path = file.path(main_folder, core_name)))
 
-  for(j in seq_along(fcore)) {
+  tmpData = read_data_in(eggInclude = FALSE,
+                         path = file.path(main_folder, core_name))
+  tmpData$horizPos1 = ifelse(test = tmpData$horizPos1 > 0, yes = tmpData$horizPos1 - 360,
+                             no = tmpData$horizPos1)
+  tmpData$horizPos1 = tmpData$horizPos1 + 360
+  tmpData$relDay = lubridate::day(tmpData$startTime)
 
-    tmpData = read_data_in(eggInclude = FALSE,
-                           path = file.path(main_folder, core_name, files_core[fcore[j]]))
-    tmpData$horizPos1 = ifelse(test = tmpData$horizPos1 > 0, yes = tmpData$horizPos1 - 360,
-                               no = tmpData$horizPos1)
-    tmpData$horizPos1 = tmpData$horizPos1 + 360
-    tmpData$relDay = lubridate::day(tmpData$startTime)
+  # Find initial and final points
+  init_points = tmpData[tmpData[ , .I[which.min(time)], by = id]$V1]
 
-    # Find initial and final points
-    init_points = tmpData[tmpData[ , .I[which.min(time)], by = id]$V1]
-
-    plotList[[indList]] = plot_trajectory(tmpData)
-
-    indList = indList+1
-
-  }
-
+  plotList[[i]] = plot_trajectory(tmpData)
+  print(i)
+  
 }
 
-# Plot trajectories:
-
-plotList2 = plotList[c(1,5,8,2,6,9,3,7,10,4)] # reorder list by year
-
-png(filename = 'figures/hind_trajectories.png', width = 190, height = 200,
-    units = 'mm', res = 500)
-do.call("grid.arrange", c(plotList2, ncol = 3))
+png(filename = 'figures/hind_trajectories.png', width = 190, height = 110, units = 'mm', res = 500)
+do.call("grid.arrange", c(plotList, ncol = 6, nrow = 4))
 dev.off()
 
 
