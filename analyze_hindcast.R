@@ -1189,6 +1189,14 @@ print(ggcorrplot(corr, p.mat = p.mat, hc.order = TRUE,
            type = "lower", insig = "blank", lab = TRUE))
 dev.off()
 
+# Make plot correlation Rec and Temp:
+ggplot(cor_df, aes(x = Temp, y = Recruit)) +
+  geom_point() +
+  theme_bw() +
+  ylab('SAM recruitment estimates') +
+  xlab('Average temperature experienced by fish') +
+  geom_smooth(method='lm', formula= y~x)
+ggsave(filename = 'figures/hind_cor_recr_temp.png', width = 90, height = 80, dpi = 500, units = 'mm')
 
 # Plot map anomalies ----------------------------------------------------------
 
