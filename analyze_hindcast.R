@@ -115,6 +115,8 @@ plot_data_11b = list()
 plot_data_12 = list()
 plot_data_13 = list()
 plot_data_14 = list()
+plot_data_15 = list() # depth
+plot_data_16 = list() # light
 
 indList = 1
 mod_year = list.files(path = file.path(main_folder))
@@ -449,6 +451,38 @@ for(j in seq_along(mod_year)) {
     fdata = data.frame(year = this_year, variable = q50$variable, q50 = q50$quant, 
                        q5 = q2_5$quant, q95 = q97_5$quant)
     plot_data_8c[[indList]] = fdata
+
+    # Section 8.5 ----------
+    # Environmental variables (alive + dead): depth
+    stageData = tmpData
+    env_data = aggregate(x = list(value = stageData$vertPos), 
+                         list(year = stageData$year, id = stageData$id), 
+                         FUN = mean, na.rm=TRUE) # mean values
+    env_data$variable = 'depth'
+    env_data$state = 'dead'
+    env_data$state[env_data$id %in% alive_data$id] = 'alive'
+    # Prepare data to save:
+    sel_var = 'value'
+    toPlotData = env_data
+    toPlotData$relday = base_wgt$rel_date[match(toPlotData$id, base_wgt$id)]
+    toPlotData$id_grid = baseLocs$id_grid[match(toPlotData$id, baseLocs$id)]
+    plot_data_15[[indList]] = toPlotData
+        
+    # Section 8.5 ----------
+    # Environmental variables (alive + dead): light
+    stageData = tmpData
+    env_data = aggregate(x = list(value = stageData$eb), 
+                         list(year = stageData$year, id = stageData$id), 
+                         FUN = mean, na.rm=TRUE) # mean values
+    env_data$variable = 'depth'
+    env_data$state = 'dead'
+    env_data$state[env_data$id %in% alive_data$id] = 'alive'
+    # Prepare data to save:
+    sel_var = 'value'
+    toPlotData = env_data
+    toPlotData$relday = base_wgt$rel_date[match(toPlotData$id, base_wgt$id)]
+    toPlotData$id_grid = baseLocs$id_grid[match(toPlotData$id, baseLocs$id)]
+    plot_data_16[[indList]] = toPlotData    
     
     # Section 9 ----------
     # Prey density field
@@ -655,6 +689,8 @@ save(plot_data_11b, file = file.path(save_folder, 'plot_data_11b.RData'))
 save(plot_data_12, file = file.path(save_folder, 'plot_data_12.RData'))
 save(plot_data_13, file = file.path(save_folder, 'plot_data_13.RData'))
 save(plot_data_14, file = file.path(save_folder, 'plot_data_14.RData'))
+save(plot_data_15, file = file.path(save_folder, 'plot_data_15.RData'))
+save(plot_data_16, file = file.path(save_folder, 'plot_data_16.RData'))
 save(baseLocs, file = file.path(save_folder, 'baseLocs.RData'))
 save(baseLocs2, file = file.path(save_folder, 'baseLocs2.RData'))
 save(base_wgt, file = file.path(save_folder, 'base_wgt.RData'))
@@ -701,6 +737,8 @@ load(file = file.path(save_folder, 'plot_data_11b.RData'))
 load(file = file.path(save_folder, 'plot_data_12.RData'))
 load(file = file.path(save_folder, 'plot_data_13.RData'))
 load(file = file.path(save_folder, 'plot_data_14.RData'))
+load(file = file.path(save_folder, 'plot_data_15.RData'))
+load(file = file.path(save_folder, 'plot_data_16.RData'))
 load(file = file.path(save_folder, 'baseLocs.RData'))
 load(file = file.path(save_folder, 'baseLocs2.RData'))
 load(file = file.path(save_folder, 'base_wgt.RData'))
@@ -1066,6 +1104,7 @@ dev.off()
 
 # Plot 11: Environmental variables -------------------------------------------------
 
+# Temperature 
 plot_dataT = bind_rows(plot_data_8a)
 plot_dataT$state = ifelse(test = plot_dataT$state == 'alive', yes = 'Surviving', no = 'Dead')
 
@@ -1099,6 +1138,46 @@ plot_env_1b = ggplot(plot_dataT, aes(x = relday, color = factor(state),
 png(filename = 'figures/hind_temp_relday.png', width = 95, height = 60, 
     units = 'mm', res = 500)
 print(plot_env_1b)
+dev.off()
+
+# Depth:
+plot_dataD = bind_rows(plot_data_15)
+plot_dataD$state = ifelse(test = plot_dataD$state == 'alive', yes = 'Surviving', no = 'Dead')
+
+plot_t_1 = ggplot(plot_dataD, aes(x = factor(year), color = factor(state), 
+                                     fill = factor(state))) + 
+  geom_boxplot(aes(y = value), alpha=0.3, outlier.size = 0.6) +
+  theme_bw() +
+  xlab(NULL) +
+  ylab('Depth (m)') +
+  ylim(c(-400, 0)) +
+  scale_x_discrete(limits = as.character(allYears), 
+                   labels = x_labs) +
+  theme(legend.position = c(0.8, 0.15), legend.background =element_blank()) +
+  guides(fill=guide_legend(title=NULL),
+         color=guide_legend(title=NULL)) 
+
+# Light:
+plot_dataL = bind_rows(plot_data_16)
+plot_dataL$state = ifelse(test = plot_dataL$state == 'alive', yes = 'Surviving', no = 'Dead')
+
+plot_t_2 = ggplot(plot_dataL, aes(x = factor(year), color = factor(state), 
+                                  fill = factor(state))) + 
+  geom_boxplot(aes(y = value*1E-15), alpha=0.3, outlier.size = 0.6) +
+  theme_bw() +
+  xlab(NULL) +
+  ylab(expression(Ambient~irradiance~"("*mu*mol*"."*m^{-2}*"."*s^{-1}*")")) +
+  scale_x_discrete(limits = as.character(allYears), 
+                   labels = x_labs) +
+  theme(legend.position = 'none', legend.background =element_blank()) +
+  guides(fill=guide_legend(title=NULL),
+         color=guide_legend(title=NULL)) 
+
+
+# Make plot:
+png(filename = 'figures/hind_depth_light.png', width = 95, height = 140, 
+    units = 'mm', res = 500)
+grid.arrange(plot_t_1, plot_t_2, ncol = 1)
 dev.off()
 
 # Plot 12: prey density data -------------------------------------------------------

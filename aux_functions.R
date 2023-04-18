@@ -178,6 +178,7 @@ read_data_in = function(eggInclude = TRUE, path = 'Results_files') {
 
 explore_plot_3D = function(data){
 
+  require(plotly)
   if('Eggs' %in% allData$typeName) {
     ini_col = 1
   } else {

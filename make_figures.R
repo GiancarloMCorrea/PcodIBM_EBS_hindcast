@@ -1,8 +1,8 @@
 # ROMS example:
 # Explore ROMS outputs:
 
-setwd('C:/Users/moroncog/Documents/DisMELS_Pcod_model')
-
+#setwd('C:/Users/moroncog/Documents/DisMELS_Pcod_model')
+source('aux_functions.R')
 require(ggplot2)
 
 # figure impacts of climate change  ------------------------------------------------------------------
@@ -184,4 +184,16 @@ ggplot(data = data_plot, aes(x = len, y = mort, color = type)) +
   guides(color = guide_legend(title = 'Source of mortality'))
 
 ggsave(filename = 'figures/source_mort.png', device = 'png', width = 100, height = 90, units = 'mm', dpi = 500)
+
+# -------------------------------------------------------------------------
+# Plot trajectories 3D two particles:
+
+main_folder = 'E:/DisMELS_save_outputs/save_hindcast' # directory where the DisMELS outputs are
+mod_year = list.files(path = file.path(main_folder))
+j = 1
+tmpData = read_data_in(eggInclude = FALSE, path = file.path(main_folder, mod_year[j]))
+tmpData$ageYSLround = round(tmpData$ageFromYSL)
+explore_plot_3D(data = tmpData)
+
+
 
