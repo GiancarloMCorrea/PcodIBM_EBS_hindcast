@@ -351,24 +351,78 @@ plot_initial_locations = function(initData) {
 
   country_shapes <-  geom_polygon(data = map_world_df, 
                                   aes(x=long, y = lat, group = group),
-                                  fill = "gainsboro",
-                                  color = "gainsboro",
+                                  fill = "white",
+                                  color = "white",
                                   size = 0.15)
 
   # change longitude values:
   initData$horizPos1 = ifelse(test = initData$horizPos1 > 0, yes = initData$horizPos1 - 360, no = initData$horizPos1)
   initData$horizPos1 = initData$horizPos1 + 360
+  
+  this_palette = 'Set1'
+  these_colors = RColorBrewer::brewer.pal(n = 9, name = this_palette)
+  alphaArrow = 0.5
 
   p1 = ggplot() + 
   country_shapes +
-  geom_contour(data = bathy1, aes(x = lon, y = lat, z = bathy), 
-               breaks = c(-50, -100, -200),
-               colour = "gray80", size = 0.25) +
-  geom_contour(data = bathy2, aes(x = lon, y = lat, z = bathy), 										   
-               breaks = c(-50, -100, -200),
-               colour = "gray80", size = 0.25) +
-  geom_point(data = initData, aes(x = horizPos1, y = horizPos2), color = 'black', size = 0.5) +
-  coord_cartesian(xlim = c(170, 205), ylim = c(51, 65)) +
+  geom_contour_filled(data = bathy1, aes(x = lon, y = lat, z = bathy), 
+               breaks = c(0, -50, -100, -200, -9000),
+               size = 0.25, show.legend = FALSE, alpha = 0.3) +
+  geom_contour_filled(data = bathy2, aes(x = lon, y = lat, z = bathy), 										   
+               breaks = c(0, -50, -100, -200, -9000),
+               size = 0.25, show.legend = FALSE, alpha = 0.3) +
+  geom_point(data = initData, aes(x = horizPos1, y = horizPos2), color = 'black', size = 0.4) +
+  coord_cartesian(xlim = c(170, 205), ylim = c(53, 64)) +
+  scale_fill_brewer(palette = this_palette) +
+  geom_curve(aes(x = 185, y = 52.5, xend = 193, yend = 54.6),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.1, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 1
+  geom_curve(aes(x = 194, y = 55, xend = 198, yend = 56.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.1, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 2
+  geom_curve(aes(x = 198.7, y = 56.7, xend = 198, yend = 58),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.7, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 3
+  geom_curve(aes(x = 197.3, y = 58.1, xend = 191, yend = 60),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.1, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 4
+  geom_curve(aes(x = 190, y = 60.5, xend = 188, yend = 61.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.1, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 5
+  geom_curve(aes(x = 192.5, y = 54.4, xend = 192, yend = 56),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.7, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 1-1
+  geom_curve(aes(x = 191.5, y = 56, xend = 185, yend = 58),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.15, alpha = alphaArrow) + # BSC = Bering Slope Current 1
+  geom_curve(aes(x = 184.8, y = 58.2, xend = 179.7, yend = 60.2),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.15, alpha = alphaArrow) + # BSC = Bering Slope Current 2
+  geom_curve(aes(x = 179, y = 60.5, xend = 174, yend = 61),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.7, alpha = alphaArrow) + # BSC = Bering Slope Current 3
+  geom_curve(aes(x = 195, y = 55.3, xend = 194.5, yend = 56.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = 0.7, alpha = alphaArrow) + # ANSC = Aleutian North Slope Current 1-2
+  geom_curve(aes(x = 193.8, y = 56.7, xend = 188.5, yend = 58.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.05, alpha = alphaArrow) + # middle arrows
+  geom_curve(aes(x = 188, y = 58.8, xend = 183, yend = 61.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.05, alpha = alphaArrow) + # middle arrows
+  geom_curve(aes(x = 181, y = 61.8, xend = 186, yend = 64),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.8, alpha = alphaArrow) + # middle arrows
+  geom_curve(aes(x = 203, y = 55.7, xend = 192, yend = 52.5),
+             arrow = arrow(length = unit(0.02, "npc")),
+             curvature = -0.05, alpha = alphaArrow) + # ACC = Alaskan Coastal Current
+  annotate("text", x = 189, y = 54, label = "ANSC", angle = 30, size = 2.6, alpha = alphaArrow) +
+  annotate("text", x = 184, y = 57.5, label = "BSC", angle = -38, size = 2.6, alpha = alphaArrow) +
+  annotate("text", x = 198, y = 53.5, label = "ACC", angle = 30, size = 2.6, alpha = alphaArrow) +
+  annotate("text", x = 203, y = 63.5, label = "Inner shelf", colour = these_colors[1], size = 2.4) +
+  annotate("text", x = 203, y = 63, label = "Middle shelf", colour = these_colors[2], size = 2.4) +
+  annotate("text", x = 203, y = 62.5, label = "Outer shelf", colour = these_colors[3], size = 2.4) +
+  annotate("text", x = 203, y = 62, label = "Deep basin", colour = these_colors[4], size = 2.4) +
   scale_x_continuous(breaks = c(175, 185, 195, 205), 
                      labels = c('175\u00B0E', '175\u00B0W', '165\u00B0W', '155\u00B0W')) +
   scale_y_continuous(breaks = c(52, 56, 60, 64), 
@@ -377,9 +431,9 @@ plot_initial_locations = function(initData) {
   ylab(NULL) +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(size = 0.5, linetype = "solid",
-                                 colour = "black"))
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(size = 0.5, linetype = "solid",
+                                   colour = "black"))
 
   return(p1)
 

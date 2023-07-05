@@ -38,6 +38,10 @@ require(sf)
 source('aux_functions.R')
 bathy1 = read.csv('main_files_hindcast/bathy1.csv')
 bathy2 = read.csv('main_files_hindcast/bathy2.csv')
+# Modify bathy2 for plotting
+tmp_bathy2 = bathy2[bathy2$lon == 179.9, ]
+tmp_bathy2$lon = 180
+bathy2 = rbind(bathy2, tmp_bathy2)
 
 # Alaska map for plotting
 ak = map_data('worldHires','USA:Alaska')
@@ -1483,5 +1487,5 @@ dev.off()
 # -------------------------------------------------------------------------
 # Plot initial locations:
 plot_initial_locations(initData = baseLocs)
-ggsave(filename = 'figures/initLocations.png', device = 'png', width = 95, height = 80, units = 'mm', dpi = 500)
+ggsave(filename = 'figures/initLocations.jpg', width = 85, height = 60, units = 'mm', dpi = 500)
 

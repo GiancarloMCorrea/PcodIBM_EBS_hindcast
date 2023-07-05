@@ -185,15 +185,43 @@ ggplot(data = data_plot, aes(x = len, y = mort, color = type)) +
 
 ggsave(filename = 'figures/source_mort.png', device = 'png', width = 100, height = 90, units = 'mm', dpi = 500)
 
+
 # -------------------------------------------------------------------------
 # Plot trajectories 3D two particles:
 
+# Organize depth data:
+load('BathyData.RData')
+newBathy = newBathy[newBathy$value < 0 & newBathy$value > -300, ]
+ak = map_data('worldHires','USA:Alaska')
+nc_base = nc_open('Bering_grid_10k.nc')
+lon = ncvar_get(nc_base, "lon_rho")
+lat = ncvar_get(nc_base, "lat_rho")
+bathy = ncvar_get(nc_base, "h")
+bathy2 = ifelse(test = bathy == 10, yes = bathy, no = bathy*-1)
+
+# Read all data for one year:
 main_folder = 'E:/DisMELS_save_outputs/save_hindcast' # directory where the DisMELS outputs are
 mod_year = list.files(path = file.path(main_folder))
-j = 1
+j = 10 # choose year
 tmpData = read_data_in(eggInclude = FALSE, path = file.path(main_folder, mod_year[j]))
-tmpData$ageYSLround = round(tmpData$ageFromYSL)
-explore_plot_3D(data = tmpData)
+# Filter data for one ID:
+sel_id = c(54, 73)
+idData = tmpData[tmpData$id %in% sel_id, ]
 
+# idData = data.frame(x = seq(from = -170, to = -160, by = 0.1),
+#                     y = seq(from = 57, to = 58, by = 0.01),
+#                     z = seq(from = -200, to = -100, by = 1))
 
-
+# Make Plot:
+par(mar = c(1, 1, 1, 3.5))
+plot3D::persp3D(x = lon - 360, y = lat, z = bathy2, clim = c(-400, 0), xlab = 'Longitude',
+                ylab = 'Latitude', zlab = 'Depth', col = viridis::viridis(1000), clab = 'Depth (m)',
+                colkey = list(at = seq(0, -400, by = -100), labels = c('0', '100', '200', '300', '400'),
+                              width = 0.7, length = 0.7, cex.axis = 0.8))
+plot3D::points3D(x = idData$x, y = idData$y, z = idData$z, col="black", add = TRUE, pch = 19)
+plot3D::lines3D(x = idData$x, y = idData$y, z = idData$z, col="black", add = TRUE)
+plot3D::text3D(x = -159, y = 58.1, z = -99, labels = 'ID 1', add = TRUE)
+jpeg(filename = 'figures/trajectory_example.jpg', width = 170, height = 160, units = 'mm', res = 500)
+plot3D::plotdev(xlim = c(-175, -155), ylim = c(55, 60), zlim = c(-300, 0), 
+                phi = 30, theta = 200) 
+dev.off()
