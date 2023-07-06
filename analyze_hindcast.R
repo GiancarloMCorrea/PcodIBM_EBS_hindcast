@@ -866,20 +866,28 @@ sl_obs = read.csv('Compare_ML_len.csv')
 sl_obs$value = sl_obs$value * 10
 sl_obs = sl_obs[sl_obs$year >= 2000 & sl_obs$year <= 2020, ]
 sl_obs = sl_obs[sl_obs$type == 'ML_0', ]
+sl_obs$type = 'SAM'
 
+ibm_sl = bind_rows(plot_data_4d)
+ibm_sl = ibm_sl %>% group_by(year) %>% summarise(value = median(SL))
+ibm_sl = ibm_sl %>% mutate(type = 'DisMELS')
+
+plot_data = rbind(sl_obs, ibm_sl)
 # Plot:
-slobs = ggplot(sl_obs, aes(x = year)) + 
-  geom_line(aes(y = value), colour = 'black') +
+slobs = ggplot(plot_data, aes(x = year)) + 
+  geom_line(aes(y = value, colour = factor(type))) +
   theme_bw() +
   xlab(NULL) +
   ylab('Mean length-at-age 0.5 (cm)') +
+  theme(legend.position = c(0.5,0.9), legend.background =element_blank()) +
+  guides(colour = guide_legend(title = ' ')) +
+  scale_color_brewer(palette = 'Dark2') +
   scale_x_continuous(expand=c(0, 0), breaks = seq(from = min_plot_year, to = max_plot_year, by = by_plot_year)) 
 
 # Merge plots:
-lay = matrix(c(1,2), nrow = 2)
-png(filename = 'figures/hind_SL_compare.png', width = 95, height = 150, 
+jpeg(filename = 'figures/hind_SL_compare.jpg', width = 85, height = 80, 
     units = 'mm', res = 500)
-grid.arrange(plot_3, slobs, layout_matrix = lay)
+print(slobs)
 dev.off()
 
 
