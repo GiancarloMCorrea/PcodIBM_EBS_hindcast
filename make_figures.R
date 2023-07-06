@@ -4,6 +4,7 @@
 #setwd('C:/Users/moroncog/Documents/DisMELS_Pcod_model')
 source('aux_functions.R')
 require(ggplot2)
+require(mapdata)
 
 # figure impacts of climate change  ------------------------------------------------------------------
 min_pco2 = 500
@@ -193,35 +194,36 @@ ggsave(filename = 'figures/source_mort.png', device = 'png', width = 100, height
 load('BathyData.RData')
 newBathy = newBathy[newBathy$value < 0 & newBathy$value > -300, ]
 ak = map_data('worldHires','USA:Alaska')
-nc_base = nc_open('Bering_grid_10k.nc')
-lon = ncvar_get(nc_base, "lon_rho")
-lat = ncvar_get(nc_base, "lat_rho")
-bathy = ncvar_get(nc_base, "h")
+nc_base = ncdf4::nc_open('Bering_grid_10k.nc')
+lon = ncdf4::ncvar_get(nc_base, "lon_rho")
+lat = ncdf4::ncvar_get(nc_base, "lat_rho")
+bathy = ncdf4::ncvar_get(nc_base, "h")
 bathy2 = ifelse(test = bathy == 10, yes = bathy, no = bathy*-1)
 
 # Read all data for one year:
-main_folder = 'E:/DisMELS_save_outputs/save_hindcast' # directory where the DisMELS outputs are
-mod_year = list.files(path = file.path(main_folder))
-j = 10 # choose year
-tmpData = read_data_in(eggInclude = FALSE, path = file.path(main_folder, mod_year[j]))
-# Filter data for one ID:
-sel_id = c(54, 73)
-idData = tmpData[tmpData$id %in% sel_id, ]
+# main_folder = 'E:/DisMELS_save_outputs/save_hindcast' # directory where the DisMELS outputs are
+# mod_year = list.files(path = file.path(main_folder))
+# j = 10 # choose year
+# tmpData = read_data_in(eggInclude = FALSE, path = file.path(main_folder, mod_year[j]))
+# # Filter data for one ID:
+# sel_id = c(54, 73)
+# idData = tmpData[tmpData$id %in% sel_id, ]
+# write.csv(idData, file = 'sample_id.csv', row.names = FALSE)
 
-# idData = data.frame(x = seq(from = -170, to = -160, by = 0.1),
-#                     y = seq(from = 57, to = 58, by = 0.01),
-#                     z = seq(from = -200, to = -100, by = 1))
+# Read sample id data:
+idData = read.csv(file = 'sample_id.csv')
 
 # Make Plot:
 par(mar = c(1, 1, 1, 3.5))
-plot3D::persp3D(x = lon - 360, y = lat, z = bathy2, clim = c(-400, 0), xlab = 'Longitude',
-                ylab = 'Latitude', zlab = 'Depth', col = viridis::viridis(1000), clab = 'Depth (m)',
-                colkey = list(at = seq(0, -400, by = -100), labels = c('0', '100', '200', '300', '400'),
-                              width = 0.7, length = 0.7, cex.axis = 0.8))
-plot3D::points3D(x = idData$x, y = idData$y, z = idData$z, col="black", add = TRUE, pch = 19)
-plot3D::lines3D(x = idData$x, y = idData$y, z = idData$z, col="black", add = TRUE)
-plot3D::text3D(x = -159, y = 58.1, z = -99, labels = 'ID 1', add = TRUE)
+plot3D::persp3D(x = lon - 360, y = lat, z = bathy2, clim = c(-600, 0), xlab = 'Longitude',
+                ylab = 'Latitude', zlab = 'Depth', col = viridis::magma(6000), clab = 'Depth (m)',
+                colkey = list(at = seq(0, -600, by = -200), labels = c('0', '200', '400', '600'),
+                              width = 0.7, length = 0.7, cex.axis = 0.6))
+plot3D::points3D(x = idData$horizPos1, y = idData$horizPos2, z = idData$vertPos, col="black", add = TRUE, pch = 19,
+                 cex = 0.7)
+plot3D::text3D(x = -161, y = 57.5, z = -1, labels = 'ID 1', add = TRUE)
+plot3D::text3D(x = -170, y = 56.2, z = -255, labels = 'ID 2', add = TRUE)
 jpeg(filename = 'figures/trajectory_example.jpg', width = 170, height = 160, units = 'mm', res = 500)
-plot3D::plotdev(xlim = c(-175, -155), ylim = c(55, 60), zlim = c(-300, 0), 
-                phi = 30, theta = 200) 
+plot3D::plotdev(xlim = c(-177, -153), ylim = c(54, 61), zlim = c(-1000, 0), 
+                phi = 30, theta = 270) 
 dev.off()
