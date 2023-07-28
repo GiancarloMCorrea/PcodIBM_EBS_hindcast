@@ -478,7 +478,7 @@ for(j in seq_along(mod_year)) {
     env_data = aggregate(x = list(value = stageData$eb), 
                          list(year = stageData$year, id = stageData$id), 
                          FUN = mean, na.rm=TRUE) # mean values
-    env_data$variable = 'depth'
+    env_data$variable = 'light'
     env_data$state = 'dead'
     env_data$state[env_data$id %in% alive_data$id] = 'alive'
     # Prepare data to save:
